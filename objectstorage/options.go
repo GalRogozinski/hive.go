@@ -2,7 +2,9 @@ package objectstorage
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
+	"github.com/labstack/gommon/log"
 	"os"
 	"time"
 
@@ -51,7 +53,14 @@ type Option func(*Options)
 
 func CacheTime(duration time.Duration) Option {
 	return func(args *Options) {
-		args.cacheTime = duration
+		cacheTime := flag.Lookup("override-cache-time").Value.(flag.Getter).Get().(int32)
+		switch {
+		case cacheTime < 0:
+			args.cacheTime = duration
+		default:
+			args.cacheTime = time.Duration(cacheTime) * time.Second
+			log.Warnf("overriding object cachetime of %d seconds to %d seconds", duration, cacheTime)
+		}
 	}
 }
 
